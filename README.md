@@ -1,225 +1,230 @@
-# 🌾 MandiQ - Voice-First Smart Mandi Queue & Procurement Management System
-> **Smart India Hackathon (SIH 2026)** | **Team RootCause** | **Track:** Agriculture, FoodTech & Rural Development
+<div align="center">
+
+<picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/banner-dark.svg"><source media="(prefers-color-scheme: light)" srcset="docs/readme/banner-light.svg"><img alt="MandiQ: book your mandi slot with one phone call, on any phone, in 4 languages" src="docs/readme/banner-light.svg" width="100%"></picture>
+
+**A farmer calls a number, presses 1, and gets a fixed time to bring their crop to the mandi.**
+**No smartphone, no app, no middleman.**
+
+[![Live demo](https://img.shields.io/badge/Live_demo-Vercel-000?logo=vercel)](https://frontend-omega-fawn-51.vercel.app/)
+[![Video](https://img.shields.io/badge/Video-YouTube-FF0000?logo=youtube&logoColor=white)](https://youtu.be/1_8FGb6jPUo)
+[![API docs](https://img.shields.io/badge/API-Swagger-85EA2D?logo=swagger&logoColor=black)](https://mandiq-sih-2026.onrender.com/docs)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React_18-20232A?logo=react)
+![SIH 2026](https://img.shields.io/badge/SIH_2026-PS_26032-f2b632)
+
+</div>
 
 ---
 
-## 👥 Team RootCause (SIH 2026)
-- **Team Name:** Team RootCause
-- **Hackathon:** Smart India Hackathon 2026
-- **Project:** MandiQ — Voice-First Automated Mandi Queue & Procurement Integrity System
-- **Mission:** Bridging the digital divide for illiterate farmers to eliminate corruption, bribery, and middleman exploitation at agricultural mandis.
+## The problem
+
+At government procurement centres (mandis), farmers bring their crop on tractors and wait. Often they
+don't know **when** weighing will start, so they wait at the gate for hours or even days. Early places
+in the line can go to whoever knows someone, or pays. And when the mandi stops for the day, the farmers
+in line find out only when they reach the gate.
+
+Most apps meant to fix this assume a smartphone and the ability to read. Many farmers have neither:
+
+<p align="center">
+<picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/reach-dark.svg"><source media="(prefers-color-scheme: light)" srcset="docs/readme/reach-light.svg"><img alt="54 of 100 rural households are farming households (about 9.3 crore); 37 of 100 rural adults and 49 of 100 rural women can't read" src="docs/readme/reach-light.svg" width="100%"></picture>
+</p>
+
+<sub>Sources: [NSS 77th round, Situation Assessment of Agricultural Households, 2019](https://ruralindiaonline.org/en/library/resource/situation-assessment-of-agricultural-households-and-land-and-livestock-holdings-of-households-in-rural-india/) · [Census 2011, via MoSPI *Women and Men in India 2014*, ch. 3](https://www.mospi.gov.in/sites/default/files/reports_and_publication/cso_social_statices_division/Chapter_3_2014.pdf) (adult literacy, age 15+)</sub>
+
+**So MandiQ works with a phone call.** Any phone, even a basic keypad one. The farmer listens and
+presses keys, or just says what they want, in Hindi, Punjabi, Bhojpuri or English.
 
 ---
 
-## 🌐 Live Deployment & Demo Links
-- 🎥 **Video Demonstration (YouTube):** [https://youtu.be/1_8FGb6jPUo](https://youtu.be/1_8FGb6jPUo)
-- 🖥️ **Live Web Application (Vercel):** [https://frontend-omega-fawn-51.vercel.app/](https://frontend-omega-fawn-51.vercel.app/)
-- 🚀 **Live API & WebSocket Backend (Render):** [https://mandiq-sih-2026.onrender.com/](https://mandiq-sih-2026.onrender.com/)
-- 📖 **Interactive API Documentation (Swagger):** [https://mandiq-sih-2026.onrender.com/docs](https://mandiq-sih-2026.onrender.com/docs)
-
----
-
-## 📌 Executive Summary
-**MandiQ** is an automated, voice-first mandi slot booking and queue management system designed to eliminate middleman exploitation, bribery, and queue manipulation at agricultural procurement centers. 
-
-According to government survey data (Census & NSS 77th Round), **over 25% of agrarian household heads in India are illiterate**, and **fewer than 20% utilize mobile applications for agriculture**. By replacing complex smartphone apps with an **Interactive Voice Response (IVR) phone system in native regional dialects**, MandiQ makes transparent slot scheduling accessible to over **80% of Indian farmers** using any basic feature phone.
-
----
-
-## ⚡ Problem vs. Solution (Theory of Tables)
-
-### 1. The Operational Challenges & Anti-Corruption Impact
-A concise overview of the bottlenecks in traditional mandis and how MandiQ resolves them:
-
-| Challenge / Vulnerability | Traditional Malpractice (Middlemen / Centers) | MandiQ Automated Solution |
-| :--- | :--- | :--- |
-| **Token Assignment** | Arbitrary & bribe-driven; early slots sold to affluent middlemen. | **Algorithmic Fair-Share**: System auto-assigns sequential, non-overlapping 15-min slots without human intervention. |
-| **Information Gap** | Farmers wait days without knowing when weighing starts; prone to distress sales. | **On-Demand Voice Check**: Dialing IVR immediately announces token number, exact slot time, and live queue position. |
-| **Middleman Arbitrage** | Intermediaries hoard slots under fake identities to buy cheap from desperate farmers. | **Unique Phone Enforcement**: Database constraint restricts strictly one active booking per verified phone number. |
-| **Sudden Delays** | Unannounced halts force farmers to wait in lines; perishable crops decay. | **1-Click Halt & Reschedule**: Transparently moves farmers to the next day with automated SMS audit records. |
-
----
-
-### 2. Database Schema (Theory of System Entities)
-MandiQ's relational database is structured to enforce transparency and non-repudiation:
-
-| Table Entity | Key Fields | System Purpose & Business Rule |
-| :--- | :--- | :--- |
-| `farmers` | `phone_number` (Unique, Indexed), `name`, `village`, `crop` | Farmer profile. Unique phone ensures identity verification without requiring smartphone logins. |
-| `slots` | `date`, `start_time`, `end_time`, `capacity`, `booked_count` | 15-minute procurement windows. Enforced with a `UniqueConstraint('date', 'start_time', 'end_time')` to prevent double-booking. |
-| `bookings` | `token_number` (Unique), `farmer_id`, `slot_id`, `status` | Links farmer to a slot. Status tracks lifecycle: `waiting` ➔ `served`, `halted`, or `no_show`. |
-| `notifications` | `farmer_id`, `message`, `status`, `created_at` | Audit trail for all rescheduled or halted bookings sent to the farmer's mobile via SMS. |
-
----
-
-### 3. Demographic Feasibility & Delivery Channels
-Comparison showing why IVR voice telephony is the only viable channel for universal rural adoption:
-
-| Access Channel | Farmer Reach | Critical Barriers in Rural India |
-| :--- | :---: | :--- |
-| **Mobile Apps (Smartphone)** | **15% - 20%** | High smartphone cost, internet data plans, UI/UX literacy barriers. |
-| **SMS (Text)** | **35% - 40%** | Requires text literacy; prone to being misread or exploited by middlemen. |
-| **IVR Voice Telephony (MandiQ)** | **75% - 80%** | **Zero literacy barrier**; works on basic feature keypad phones in native dialects. |
-| **Physical Mandi Counter** | ~100% | High corruption risk; physical queuing enables extortion and bribery. |
-
----
-
-## 🚀 Key Features
-
-### 1. 📞 Voice-First IVR Phone Simulator (Dial 1 / 2)
-- **Zero App Required**: Works on basic keypad phones (e.g. Nokia 3310) and smartphones alike.
-- **Multilingual Voice Prompts**: Available in Hindi (`hi-IN`) and English (`en-US`) with speech synthesis.
-- **Press 1**: Book a procurement slot for Wheat, Sugarcane, or Paddy.
-- **Press 2**: Check live booking status, token number, and scheduled arrival time.
-- **Instant Confirmation**: Displays a simulated SMS receipt with token number and entry window.
-
-### 2. 🖥️ Real-Time Admin Dashboard
-- **Live WebSocket Feed**: Real-time queue updates broadcast instantaneously to mandi officials without page reloads.
-- **Interactive Sorting & Filtering**:
-  - Sort by **Token Number**, **Farmer Name**, **Crop**, **Date & Time**, or **Status**.
-  - Instant text search across tokens, names, villages, and crop types.
-  - Quick filter dropdown for `Waiting`, `Served`, `Halted`, or `No-Show`.
-- **Status Lifecycle Control**:
-  - `✅ Served`: Mark farmer transaction as completed.
-  - `❌ No-Show`: Flag unattended slot allocations.
-  - `⏸ Halt`: Reschedules farmer to the next business day at the same time window, logging an SMS alert.
-
-### 3. 🛡️ Robust Backend & Anti-Corruption Guard
-- **Concurrency & Transaction Safety**: SQLite/PostgreSQL with async SQLAlchemy and row-level locking.
-- **Unique Slot Enforcer**: Strictly prevents overlapping 15-minute intervals.
-- **Eager-Loaded ORM Relationships**: High-performance async joined loading preventing database IO bottlenecks.
-
----
-
-## 🏗️ System Architecture
+## How a call works
 
 ```mermaid
-graph TD
-    A[Farmer Keypad Phone / Mobile] -->|Telephony / Audio Prompts| B[IVR Service / Phone Simulator]
-    B -->|REST API Calls| C[FastAPI Backend Engine]
-    C -->|Transactions & Constraints| D[(SQLite / PostgreSQL Database)]
-    C -->|WebSocket Broadcasts| E[Mandi Admin Dashboard - React]
-    E -->|Status Actions: Served / Halt| C
-    C -->|Automated Rescheduling| D
-    C -->|Queued SMS Notifications| F[SMS Gateway]
+flowchart LR
+    A["📞 Farmer calls<br/>MandiQ"] --> B["🗣️ Hears the menu in<br/>their language<br/>Hindi · Punjabi ·<br/>Bhojpuri · English"]
+    B --> C{"Press 1<br/>or Press 2"}
+    C -->|"1 · Book"| D["🌾 Says the crop,<br/>or presses 1 Wheat ·<br/>2 Sugarcane · 3 Paddy"]
+    D --> E["🎟️ Gets a token and<br/>a 15-minute slot"]
+    E --> F["📩 SMS with<br/>token + time"]
+    C -->|"2 · Check"| G["🔊 Hears token,<br/>place in line<br/>and time"]
+```
+
+Farmers can also just speak: *"Gehun lana hai"* (Hindi), *"Kanak aana hai"* (Punjabi) or
+*"Gohun beche ke ba"* (Bhojpuri) all book a wheat slot. Speech is handled by Sarvam AI and the
+government's Bhashini service.
+
+<p align="center"><img src="docs/readme/screen-ivr.png" alt="The IVR simulator: a keypad phone, demo farmers in Hindi, Punjabi and Bhojpuri, and quick voice phrases" width="55%"></p>
+
+<sub>The IVR simulator in the web app lets you try a call without a real phone line.</sub>
+
+---
+
+## What changes at the mandi
+
+<p align="center">
+<picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/compare-dark.svg"><source media="(prefers-color-scheme: light)" srcset="docs/readme/compare-light.svg"><img alt="Before and after: slots in fixed order instead of by connections; tokens by phone instead of waiting at the gate; one booking per phone number; halt moves everyone to tomorrow with an SMS" src="docs/readme/compare-light.svg" width="100%"></picture>
+</p>
+
+<p align="center">
+<picture><source media="(prefers-color-scheme: dark)" srcset="docs/readme/slots-dark.svg"><source media="(prefers-color-scheme: light)" srcset="docs/readme/slots-light.svg"><img alt="A morning split into 15-minute slots: served, at the weighbridge now, waiting, and one halted slot moved to tomorrow" src="docs/readme/slots-light.svg" width="100%"></picture>
+</p>
+
+---
+
+## The mandi officer's screen
+
+<p align="center"><img src="docs/readme/screen-dashboard.png" alt="MandiQ admin dashboard: a live queue of tokens, farmers, crops and 15-minute slots with Served, No-Show and Halt buttons" width="100%"></p>
+
+The queue updates live, without refreshing. For each farmer the officer can mark them
+**Served** or **No-show**, or **Halt** the booking, which moves it to the same time tomorrow and
+sends the farmer an SMS. **Halt All** does that for the whole day in one click.
+
+Every booking moves through the same few states:
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> Waiting: farmer books by phone
+    Waiting --> Served: crop weighed
+    Waiting --> NoShow: didn't come
+    Waiting --> Halted: mandi stops
+    Halted --> Waiting: same slot tomorrow + SMS
+    Served --> [*]
+    NoShow --> [*]
 ```
 
 ---
 
-## 🛠️ Technology Stack
+## Try it
 
-- **Backend**: Python 3.11, FastAPI, Uvicorn, SQLAlchemy 2.0 (AsyncIO + Aiosqlite)
-- **Frontend**: React 18, Vite, Modern Responsive Glassmorphic CSS
-- **Real-Time Communication**: Native WebSockets (`/ws/queue`)
-- **Speech Synthesis**: Web Speech API (`SpeechSynthesisUtterance`)
-- **Documentation & Reporting**: ReportLab PDF Engine, Swagger / OpenAPI
+1. Open the **[live demo](https://frontend-omega-fawn-51.vercel.app/)** or watch the **[video](https://youtu.be/1_8FGb6jPUo)**.
+2. Go to the **IVR Simulator** tab, pick a demo farmer, and press the green **CALL** button.
+3. Press **1** to book, then pick a crop. You'll hear the confirmation and see the SMS.
+4. Call again and press **2** to hear your token and time.
+5. Back on the **Dashboard**, press **Halt** on any waiting farmer and watch them move to tomorrow.
 
 ---
 
-## 📂 Project Structure
+## For developers
 
+<details>
+<summary><b>Architecture</b></summary>
+
+<br>
+
+```mermaid
+flowchart TD
+    A[Farmer's phone] -->|voice / keypad| B[IVR simulator]
+    B -->|REST| C[FastAPI backend]
+    C -->|async SQLAlchemy| D[(SQLite or PostgreSQL)]
+    C -->|WebSocket /ws/queue| E[React dashboard]
+    E -->|Served · No-show · Halt| C
+    C --> F[SMS log]
+    B -->|speech-to-text, text-to-speech| G[Sarvam AI · Bhashini]
 ```
+
+**Rules the database enforces**
+
+| Table | Rule |
+|---|---|
+| `farmers` | One record per phone number (`unique`) |
+| `slots` | No two slots with the same date and time (`uq_slot_time`); 15 minutes, capacity 1 |
+| `bookings` | Unique token; `waiting` → `served`, `no_show` or `halted` |
+| `notifications` | Every halt and reschedule is logged as an SMS |
+
+The booking endpoint also refuses a second **active** booking for the same phone number.
+
+</details>
+
+<details>
+<summary><b>API</b></summary>
+
+<br>
+
+| Method | Path | What it does |
+|---|---|---|
+| `POST` | `/book` | Book the next free slot |
+| `GET` | `/status/{phone}` | Token, place in line, slot time, status |
+| `GET` | `/queue` | The live queue |
+| `POST` | `/queue/update` | Mark `served` or `no_show` |
+| `POST` | `/queue/halt` · `/queue/halt-all` | Move one or all bookings to the next day |
+| `POST` | `/queue/reschedule` | Move a booking to another slot |
+| `GET` | `/notifications` | The SMS log |
+| `POST` | `/voice/tts` · `/voice/stt` · `/voice/process-speech` · `/voice/translate` | Speech via Sarvam AI / Bhashini |
+| `WS` | `/ws/queue` | Live queue updates |
+
+Interactive docs: **[mandiq-sih-2026.onrender.com/docs](https://mandiq-sih-2026.onrender.com/docs)**
+
+</details>
+
+<details>
+<summary><b>Run it locally</b></summary>
+
+<br>
+
+Needs Python 3.10+ and Node.js 18+.
+
+```bash
+git clone https://github.com/abhishekgoswami0720/MandiQ.git
+cd MandiQ
+
+pip install -r requirements.txt
+cp .env.example .env              # add your own Sarvam and Bhashini keys
+uvicorn app.main:app --reload --port 8000
+
+# second terminal
+cd frontend
+npm install
+npm run dev                       # http://localhost:5173
+```
+
+To fill the queue with 100 demo farmers: `python seed_100_customers.py`.
+
+**Environment variables** (in `.env` locally, or in Render's settings, never in the code):
+
+| Variable | Used for |
+|---|---|
+| `DATABASE_URL` | Defaults to a local SQLite file |
+| `SARVAM_API_KEY` | Sarvam AI speech |
+| `BHASHINI_USER_ID`, `BHASHINI_API_KEY`, `BHASHINI_PIPELINE_URL` | Bhashini speech and translation |
+
+</details>
+
+<details>
+<summary><b>Project layout</b></summary>
+
+<br>
+
+```text
 MandiQ/
 ├── app/
-│   ├── main.py                  # FastAPI entrypoint, lifespan, CORS, and routing
-│   ├── database.py              # Async database connection and session maker
-│   ├── models.py                # Database models (Farmer, Slot, Booking, Notification)
-│   ├── schemas.py               # Pydantic validation schemas
-│   ├── parv_routes.py           # Core queue, IVR, booking, halt, and status endpoints
-│   └── websocket_manager.py     # Real-time WebSocket connection manager
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── PhoneSimulator.jsx # Interactive Nokia keypad IVR simulator with speech
-│   │   │   └── QueueTable.jsx     # Live real-time dashboard with search & sorting
-│   │   ├── services/
-│   │   │   ├── api.js             # Axios client for backend communication
-│   │   │   └── websocket.jsx      # React WebSocket context & listener hook
-│   │   ├── App.jsx                # Main layout with tab navigation
-│   │   └── index.css              # Custom styling, dark mode & badge colors
-│   ├── package.json
-│   └── vite.config.js             # Vite dev server config with proxy
-├── MandiQ_Farmer_Demographics_Report.pdf # Field data & feasibility study
-├── mock_customers_100.json      # 100 realistic customer records for testing
-├── requirements.txt             # Python dependencies
-└── README.md
+│   ├── main.py               # FastAPI app, CORS, WebSocket
+│   ├── parv_routes.py        # booking, status, queue, halt, reschedule
+│   ├── voice_routes.py       # speech-to-text, text-to-speech, translation
+│   ├── services/             # Sarvam AI and Bhashini clients
+│   ├── nlp_matcher.py        # matches spoken crop names ("gehun", "kanak") to crops
+│   ├── models.py, schemas.py, database.py
+│   └── websocket_manager.py
+├── frontend/src/
+│   ├── components/           # PhoneSimulator, QueueTable, BookingForm, SmsDrawer, AnalyticsView
+│   └── services/             # API client, WebSocket, offline demo data
+├── seed_100_customers.py     # demo data
+└── MandiQ_Farmer_Demographics_Report.pdf
 ```
+
+</details>
 
 ---
 
-## 🚦 Getting Started & Local Setup
+## Team RootCause
 
-### Prerequisites
-- Python 3.10+ installed
-- Node.js 18+ and npm installed
+Built for **Smart India Hackathon 2026**, problem statement **26032** (Ministry of Consumer Affairs,
+Food & Public Distribution). MandiQ reached the **top 45 of 450+ teams** in the institute round at GLA University.
 
-### 1. Clone the Repository
-```bash
-git clone https://github.com/abhishekgoswami0720/Team-RootCause----MandiQ----SIH-2026.git
-cd Team-RootCause----MandiQ----SIH-2026
-```
-
-### 2. Backend Setup
-```bash
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Run FastAPI backend with Uvicorn
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-- API Documentation available at: `http://localhost:8000/docs`
-
-### 3. Frontend Setup
-```bash
-# Navigate to frontend folder
-cd frontend
-
-# Install node packages
-npm install
-
-# Start Vite development server
-npm run dev
-```
-- Dashboard UI available at: `http://localhost:5173`
-
----
-
-## 🧪 Testing the Solution
-
-You can test MandiQ either **instantly via the live cloud deployment** or **locally on your machine**:
-
-### 🌐 Option A: Testing on Live Deployment (No Installation Required)
-1. **Open the Live App**: Visit [https://frontend-omega-fawn-51.vercel.app/](https://frontend-omega-fawn-51.vercel.app/).
-2. **Explore the Real-Time Queue**:
-   - Notice the **100 pre-populated farmer records** across working time slots.
-   - Test the **interactive column sorting**: click on headers (**Token**, **Farmer**, **Crop**, **Date & Time**, or **Status**) to sort ascending/descending.
-   - Use the **instant search bar** to filter by farmer name, village, or crop (e.g., search *"Wheat"* or *"Rampur"*).
-   - Use the **Status dropdown** to view only `Waiting`, `Served`, `Halted`, or `No-Show` bookings.
-3. **Simulate a Voice Call (IVR)**:
-   - Switch to the **IVR Simulator** tab in the top navigation bar.
-   - Choose your preferred language: **Hindi (हिंदी)** or **English**.
-   - Click the green **CALL** button.
-   - Listen to the spoken voice prompt.
-   - Press **`1`** on the Nokia keypad to initiate slot booking, then press **`1` (Wheat)**, **`2` (Sugarcane)**, or **`3` (Paddy)**.
-   - Observe the spoken audio confirmation and the **simulated SMS notification receipt** containing the generated Token Number and assigned entry time.
-4. **Verify On-Demand Status Retrieval**:
-   - Place another call and press **`2`** to check status.
-   - The IVR will retrieve your active booking and announce your token, time window, and status in spoken audio.
-5. **Test the Anti-Corruption Halt & Reschedule Feature**:
-   - Switch back to the **Dashboard** tab.
-   - On any farmer with `WAITING` status, click the red **⏸ Halt** button.
-   - Notice how the status immediately turns to **`HALTED`**, the date is automatically advanced to the next business day (`2026-09-14`), and an SMS audit notification is generated.
-
----
-
-### 💻 Option B: Testing Locally
-1. Start the FastAPI backend: `uvicorn app.main:app --reload --host 0.0.0.0 --port 8000`.
-2. Start the Vite frontend: `cd frontend && npm run dev`.
-3. Open [http://localhost:5173](http://localhost:5173) in your browser.
-4. Open the Swagger API docs at [http://localhost:8000/docs](http://localhost:8000/docs) to test endpoints directly (`/book`, `/queue`, `/queue/halt`, `/simulate/status/{phone}`).
-5. Watch live queue updates broadcast in real-time over native WebSockets (`/ws/queue`) as actions are triggered.
-
----
-
-## 👥 Submission Note
-Submitted for **Smart India Hackathon 2026** by **Team RootCause**.
+| | |
+|---|---|
+| **Abhishek Goswami** | Team lead |
+| Parv Mishra | Team member |
+| Pushkar Singhal | Team member |
+| Priyanshu Kuntal | Team member |
+| Medhavi Agarwal | Team member |
+| Bhawana Singh | Team member |
